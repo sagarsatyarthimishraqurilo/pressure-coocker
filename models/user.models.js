@@ -51,6 +51,10 @@ const userSchema = new mongoose.Schema(
       type: Date,
       default: null,
     },
+    otpVerified: {
+      type: Boolean,
+      default: false
+    },
     address: { type: String },
     city: { type: String },
     zipCode: { type: String },

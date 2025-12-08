@@ -28,4 +28,5 @@ const verifyEmail = async (email, token) => {
     }
 }
 
+
 module.exports = verifyEmail;
