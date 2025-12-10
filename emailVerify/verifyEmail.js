@@ -17,7 +17,7 @@ const verifyEmail = async (email, token) => {
         subject: 'Email Verification',
         text: `Hi!, There, You have recently visited our website and you have requested for email verification.
          Please click on the link below to verify your email:
-         https://localhost:5173/verify-email?token=${token}`
+         http://localhost:5173/verify/${token}`
     }
 
     try {

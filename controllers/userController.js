@@ -4,7 +4,8 @@ const jwt = require('jsonwebtoken');
 const verifyEmail = require('../emailVerify/verifyEmail');
 const session = require('../models/sessionModel');
 const { use } = require('../routes/userRoutes');
-const sendOTPMail = require('../emailVerify/sentOTPMail')
+const sendOTPMail = require('../emailVerify/sentOTPMail');
+const cloudinary = require('../utils/cloudinary')
 
 const register = async (req, res) => {
     try {
@@ -360,9 +361,9 @@ const getAllUser = async (_, res,) => {
 
 const getUserByID = async (req, res) => {
     try {
-        const {userId} = req.params; //Extract useriD from request params
+        const { userId } = req.params; //Extract useriD from request params
         const user = await userModel.findById(userId).select("-password -otp -otpExpiry -token -otpVerified")
-        if(!user){
+        if (!user) {
             return res.status(404).json({
                 success: false,
                 message: "User not found"
@@ -380,4 +381,88 @@ const getUserByID = async (req, res) => {
     }
 }
 
-module.exports = { register, verify, reVerify, login, logout, forgotPassword, ResetPassword, changePassowrd, getAllUser, getUserByID }
+const updateUser = async (req, res) => {
+    try {
+        const userIdToUpdate = req.params.userId //The Id of the user we want to update
+        const loggedInUser = req.user //From is Authenticated Middleware
+        const { firstName, lastName, address, zipCode, city, role, phoneNo } = req.body
+
+        if (loggedInUser._id.toString() !== userIdToUpdate && loggedInUser.role !== 'admin') {
+            return res.status(403).json({
+                success: false,
+                message: "You are not allowed to update this profile"
+            })
+        }
+
+        let user = await userModel.findById(userIdToUpdate);
+        if (!user) {
+            console.log("Hejbrejhbre")
+            return res.status(404).json({
+                success: false,
+                message: "User not found"
+            })
+        }
+        let profilePicUrl = user.profilePic;
+        let profilePicPublicId = user.profilePicPublicId;
+
+        //If a new file uploaded 
+        if (req.file) {
+            if (profilePicPublicId) {
+                await cloudinary.uploader.destroy(profilePicPublicId)
+            }
+
+            const uploadResult = await new Promise((resolve, reject) => {
+                const stream = cloudinary.uploader.upload_stream(
+                    { folder: "profiles" },
+                    (error, result) => {
+                        if (error) {
+                            reject(error)
+                        }
+                        else resolve(result)
+                    }
+                )
+                stream.end(req.file.buffer)
+            })
+            profilePicUrl = uploadResult.secure_url;
+            profilePicPublicId = uploadResult.public_id;
+        }
+
+        //update fields
+        user.firstName = firstName || user.firstName;
+        user.lastName = lastName || user.lastName;
+        user.address = address || user.address;
+        user.zipCode = zipCode || user.zipCode;
+        user.phoneNo = phoneNo || user.phoneNo;
+        user.city = city || user.city;
+        user.role = role || user.role;
+        user.profilePic = profilePicUrl;
+        user.profilePicPublicId = profilePicPublicId;
+
+        const updatedUser = await user.save();
+        return res.status(200).json({
+            success: true,
+            message: "Profile Updated Successfully",
+            updateUser,
+        })
+
+    } catch (error) {
+        return res.status(500).json({
+            success: false,
+            message: error.message
+        })
+    }
+}
+
+module.exports = {
+    register,
+    verify,
+    reVerify,
+    login,
+    logout,
+    forgotPassword,
+    ResetPassword,
+    changePassowrd,
+    getAllUser,
+    getUserByID,
+    updateUser
+}
