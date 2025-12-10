@@ -33,7 +33,7 @@ const register = async (req, res) => {
             password: hashPassword,
         });
         const token = jwt.sign({ userId: newUser._id }, process.env.JWT_SECRET, { expiresIn: '10m' });
-        await verifyEmail(email, token); //send email to user for verification
+        //await verifyEmail(email, token); //send email to user for verification (Later It open)
         newUser.token = token;
         await newUser.save();
 
@@ -344,7 +344,7 @@ const changePassowrd = async (req, res) => {
 
 const getAllUser = async (_, res,) => {
     try {
-        const user = await userModel.find();
+        const user = await userModel.find().select("-password -otp -otpExpiry -token -otpVerified")
         return res.status(200).json({
             success: true,
             user: user
@@ -453,6 +453,23 @@ const updateUser = async (req, res) => {
     }
 }
 
+const getProfile = async (req, res) =>{
+    const userId = req.id
+    const user = await userModel.findById(userId);
+    if(!user){
+        return res.status(403).json({
+            success: false,
+            message: "user not found.."
+        })   
+    }
+    const showUser = await userModel.findById(userId).select("-password -profilePicPublicId -token -isLoggedIn -otp -otpExpiry")
+    return res.status(200).json({
+        success: false,
+        message: "Successful get user profile...",
+        showUser
+    })
+}
+
 module.exports = {
     register,
     verify,
@@ -464,5 +481,6 @@ module.exports = {
     changePassowrd,
     getAllUser,
     getUserByID,
-    updateUser
+    updateUser,
+    getProfile
 }

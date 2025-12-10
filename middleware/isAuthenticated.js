@@ -7,6 +7,7 @@ const isAuthenticated = async (req, res, next) => {
     try {
         const authHeader = req.headers.authorization;
         if (!authHeader || !authHeader.startsWith('Bearer ')) {
+            console.log('No Bearer token found');
             return res.status(400).json({
                 success: false,
                 message: "Authorization token is missing or invalid"

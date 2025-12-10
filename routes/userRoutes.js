@@ -9,7 +9,8 @@ const {
     changePassowrd,
     getAllUser,
     getUserByID,
-    updateUser
+    updateUser,
+    getProfile
 } = require('../controllers/userController');
 const { isAuthenticated, isAdmin } = require('../middleware/isAuthenticated');
 const { singleUpload } = require('../middleware/multer');
@@ -27,5 +28,6 @@ router.post('/change-password/:email', changePassowrd)
 router.get('/all-user', isAuthenticated, isAdmin, getAllUser)
 router.get('/get-user/:userId', getUserByID)
 router.put('/updated/:userId', isAuthenticated, singleUpload, updateUser)
+router.get('/get-profile', isAuthenticated, getProfile)
 
 module.exports = router;
