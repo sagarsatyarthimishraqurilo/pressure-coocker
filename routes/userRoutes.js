@@ -26,7 +26,7 @@ router.post('/forget-password', forgotPassword)
 router.post('/verify-otp/:email', ResetPassword)
 router.post('/change-password/:email', changePassowrd)
 router.get('/all-user', isAuthenticated, isAdmin, getAllUser)
-router.get('/get-user/:userId', getUserByID)
+router.get('/get-user/:userId', isAuthenticated, getUserByID)
 router.put('/updated/:userId', isAuthenticated, singleUpload, updateUser)
 router.get('/get-profile', isAuthenticated, getProfile)
 

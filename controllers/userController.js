@@ -144,6 +144,14 @@ const login = async (req, res) => {
                 message: "User not exist"
             })
         }
+        // New: check block
+        if (user.isBlocked) {
+            return res.status(403).json({
+                success: false,
+                message: "Your account has been blocked. Contact administrator."
+            });
+        }
+        
         const isPasswordValid = await bcrypt.compare(password, user.password);
         if (!isPasswordValid) {
             return res.status(400).json({
@@ -453,14 +461,14 @@ const updateUser = async (req, res) => {
     }
 }
 
-const getProfile = async (req, res) =>{
+const getProfile = async (req, res) => {
     const userId = req.id
     const user = await userModel.findById(userId);
-    if(!user){
+    if (!user) {
         return res.status(403).json({
             success: false,
             message: "user not found.."
-        })   
+        })
     }
     const showUser = await userModel.findById(userId).select("-password -profilePicPublicId -token -isLoggedIn -otp -otpExpiry")
     return res.status(200).json({
